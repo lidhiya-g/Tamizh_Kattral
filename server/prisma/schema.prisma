@@ -1,0 +1,382 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  passwordHash String
+  role         String         @default("STUDENT") // STUDENT, TEACHER, ADMIN
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  lastLoginAt  DateTime?
+
+  profile          Profile?
+  userProgress     UserProgress?
+  lessonProgress   LessonProgress[]
+  stageProgress    StageProgress[]
+  bookProgress     BookProgress[]
+  quizAttempts     QuizAttempt[]
+  xpTransactions   XPTransaction[]
+  userAchievements UserAchievement[]
+  streak           UserStreak?
+  bookmarks        Bookmark[]
+  settings         UserSettings?
+  activityLogs     ActivityLog[]
+  notifications    Notification[]
+
+  @@index([email])
+}
+
+model Profile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  avatar             String?
+  bio                String?
+  learningGoal       String?
+  dailyTargetMinutes Int      @default(15)
+  currentStage       Int      @default(1)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model LearningStage {
+  id          String   @id @default(uuid())
+  number      Int      @unique
+  title       String
+  slug        String   @unique
+  description String
+  icon        String   @default("BookOpen")
+  order       Int
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lessons       Lesson[]
+  stageProgress StageProgress[]
+}
+
+model Lesson {
+  id               String   @id @default(uuid())
+  stageId          String
+  stage            LearningStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  title            String
+  slug             String   @unique
+  description      String
+  content          String   // JSON or Markdown content
+  difficulty       String   @default("BEGINNER") // BEGINNER, INTERMEDIATE, ADVANCED
+  estimatedMinutes Int      @default(10)
+  xpReward         Int      @default(50)
+  order            Int
+  isPublished      Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sentences      Sentence[]
+  quizzes        Quiz[]
+  lessonProgress LessonProgress[]
+
+  @@index([stageId])
+}
+
+model Letter {
+  id              String   @id @default(uuid())
+  character       String   @unique
+  transliteration String
+  pronunciation   String
+  type            String   // VOWEL, CONSONANT, GRANTHA, AYUTHA
+  exampleWord     String
+  exampleMeaning  String
+  audioText       String
+  order           Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Word {
+  id              String   @id @default(uuid())
+  tamil           String   @unique
+  transliteration String
+  meaning         String
+  category        String   // Family, Nature, Food, Animals, Objects, Places, Everyday Life
+  difficulty      String   @default("BEGINNER")
+  audioText       String
+  exampleSentence String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Sentence {
+  id              String   @id @default(uuid())
+  tamil           String
+  transliteration String
+  translation     String
+  difficulty      String   @default("BEGINNER")
+  lessonId        String?
+  lesson          Lesson?  @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  audioText       String
+  order           Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ReadingPassage {
+  id               String   @id @default(uuid())
+  title            String
+  tamilText        String
+  transliteration  String
+  translation      String
+  difficulty       String   @default("BEGINNER")
+  estimatedMinutes Int      @default(5)
+  source           String   @default("Classical Tamil Collection")
+  vocabularyJson   String   @default("[]") // JSON string of [{word, meaning, pronunciation}]
+  isPublished      Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Book {
+  id               String   @id @default(uuid())
+  title            String
+  author           String
+  description      String
+  coverImage       String?
+  difficulty       String   @default("BEGINNER")
+  category         String   // Beginner Reading, Tamil Stories, Classical Tamil, Thirukkural, Poetry
+  estimatedMinutes Int      @default(20)
+  source           String
+  pagesJson        String   @default("[]") // JSON array of page contents
+  isPublished      Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  bookProgress BookProgress[]
+}
+
+model BookProgress {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookId      String
+  book        Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  currentPage Int      @default(1)
+  totalPages  Int      @default(1)
+  isCompleted Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, bookId])
+  @@index([userId])
+}
+
+model Thirukkural {
+  id                String   @id @default(uuid())
+  number            Int      @unique
+  tamilText         String
+  meaning           String
+  simpleExplanation String
+  chapter           String
+  audioText         String
+  source            String   @default("Classical Literature")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Quiz {
+  id           String   @id @default(uuid())
+  lessonId     String?
+  lesson       Lesson?  @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+  title        String
+  description  String
+  passingScore Int      @default(70)
+  xpReward     Int      @default(30)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  questions    QuizQuestion[]
+  quizAttempts QuizAttempt[]
+
+  @@index([lessonId])
+}
+
+model QuizQuestion {
+  id            String   @id @default(uuid())
+  quizId        String
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  type          String   // MULTIPLE_CHOICE, LETTER_RECOGNITION, WORD_MEANING, MATCHING, SENTENCE_ORDER, READING_COMPREHENSION
+  question      String
+  optionsJson   String   // JSON string of options array
+  correctAnswer String
+  explanation   String
+  order         Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([quizId])
+}
+
+model QuizAttempt {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId     String
+  quiz       Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  score      Int
+  passed     Boolean  @default(false)
+  timeTaken  Int      @default(0) // seconds
+  answersJson String   // JSON string of user submitted answers
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([quizId])
+}
+
+model UserProgress {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentStage     Int      @default(1)
+  completedLessons Int      @default(0)
+  completedStages  Int      @default(0)
+  totalXP          Int      @default(0)
+  level            Int      @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model LessonProgress {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+}
+
+model StageProgress {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stageId     String
+  stage       LearningStage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  status      String        @default("LOCKED") // LOCKED, AVAILABLE, IN_PROGRESS, COMPLETED
+  completedAt DateTime?
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([userId, stageId])
+  @@index([userId])
+}
+
+model Achievement {
+  id               String            @id @default(uuid())
+  name             String            @unique
+  description      String
+  icon             String            @default("Award")
+  requirementType  String            // XP, LESSONS, WRITING, QUIZ, STREAK, STAGE
+  requirementValue Int
+  createdAt        DateTime          @default(now())
+
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+model XPTransaction {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Int
+  reason      String   // LESSON_COMPLETE, WRITING_PRACTICE, QUIZ_COMPLETE, READING_COMPLETE, STAGE_COMPLETE, ACHIEVEMENT
+  referenceId String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model UserStreak {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentStreak  Int      @default(0)
+  longestStreak  Int      @default(0)
+  lastActiveDate String?  // YYYY-MM-DD
+  updatedAt      DateTime @updatedAt
+}
+
+model Bookmark {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemType   String   // LESSON, WORD, BOOK, READING, THIRUKKURAL
+  itemId     String
+  title      String
+  snippet    String?
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, itemType, itemId])
+  @@index([userId])
+}
+
+model UserSettings {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language       String   @default("en")
+  theme          String   @default("system") // light, dark, system
+  soundEnabled   Boolean  @default(true)
+  speechRate     Float    @default(1.0)
+  notifications  Boolean  @default(true)
+  updatedAt      DateTime @updatedAt
+}
+
+model LanguagePreference {
+  id           String   @id @default(uuid())
+  languageCode String   @default("en")
+  updatedAt    DateTime @updatedAt
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

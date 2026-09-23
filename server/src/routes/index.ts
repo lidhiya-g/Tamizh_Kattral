@@ -1,0 +1,40 @@
+import { Router } from 'express';
+import authRoutes from './authRoutes';
+import stageRoutes from './stageRoutes';
+import lessonRoutes from './lessonRoutes';
+import letterRoutes from './letterRoutes';
+import wordRoutes from './wordRoutes';
+import sentenceRoutes from './sentenceRoutes';
+import readingRoutes from './readingRoutes';
+import bookRoutes from './bookRoutes';
+import thirukkuralRoutes from './thirukkuralRoutes';
+import quizRoutes from './quizRoutes';
+import progressRoutes from './progressRoutes';
+import searchRoutes from './searchRoutes';
+import adminRoutes from './adminRoutes';
+import teacherRoutes from './teacherRoutes';
+import bookmarkRoutes from './bookmarkRoutes';
+import settingsRoutes from './settingsRoutes';
+import writingRoutes from './writingRoutes';
+
+const router = Router();
+
+router.use('/auth', authRoutes);
+router.use('/stages', stageRoutes);
+router.use('/lessons', lessonRoutes);
+router.use('/letters', letterRoutes);
+router.use('/words', wordRoutes);
+router.use('/sentences', sentenceRoutes);
+router.use('/reading', readingRoutes);
+router.use('/books', bookRoutes);
+router.use('/thirukkural', thirukkuralRoutes);
+router.use('/quizzes', quizRoutes);
+router.use('/progress', progressRoutes);
+router.use('/search', searchRoutes);
+router.use('/admin', adminRoutes);
+router.use('/teacher', teacherRoutes);
+router.use('/bookmarks', bookmarkRoutes);
+router.use('/settings', settingsRoutes);
+router.use('/writing', writingRoutes);
+
+export default router;
