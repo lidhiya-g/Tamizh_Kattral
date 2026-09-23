@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ml = void 0;
-exports.ml = {
+export const ml = {
     appName: 'തമിഴ് ചോലൈ',
     tagline: 'നിങ്ങളുടെ ആദ്യ അക്ഷരം മുതൽ ആദ്യ തമിഴ് പുസ്തകം വരെ.',
     nav: {

@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.te = void 0;
-exports.te = {
+export const te = {
     appName: 'తమిళ్ చోలై',
     tagline: 'మీ మొదటి అక్షరం నుండి మీ మొదటి తమిళ పుస్తకం వరకు.',
     nav: {

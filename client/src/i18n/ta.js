@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ta = void 0;
-exports.ta = {
+export const ta = {
     appName: 'தமிழ்ச்சோலை',
     tagline: 'உங்கள் முதல் எழுத்திலிருந்து உங்களின் முதல் தமிழ் புத்தகம் வரை.',
     nav: {

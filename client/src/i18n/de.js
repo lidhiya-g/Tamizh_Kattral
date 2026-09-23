@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.de = void 0;
-exports.de = {
+export const de = {
     appName: 'Tamizh Cholai',
     tagline: 'Von Ihrem ersten Buchstaben bis zu Ihrem ersten tamilischen Buch.',
     nav: {
