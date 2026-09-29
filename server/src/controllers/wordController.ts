@@ -1,22 +1,30 @@
 import { Request, Response, NextFunction } from 'express';
+import { Prisma } from '@prisma/client';
 import prisma from '../prisma/client';
 
 export class WordController {
   static async getWords(req: Request, res: Response, next: NextFunction) {
     try {
       const { category, difficulty } = req.query;
-      const where: any = {};
-      if (category) where.category = String(category);
-      if (difficulty) where.difficulty = String(difficulty);
+
+      const where: Prisma.WordWhereInput = {};
+
+      if (category) {
+        where.category = String(category);
+      }
+
+      if (difficulty) {
+        where.difficulty = String(difficulty);
+      }
 
       const words = await prisma.word.findMany({
         where,
         orderBy: { tamil: 'asc' },
       });
 
-      const wordsWithComponents = words.map(word => ({
+      const wordsWithComponents = words.map((word) => ({
         ...word,
-        components: Array.from(word.tamil), // Split character array for word builder
+        components: Array.from(word.tamil),
       }));
 
       res.json({ success: true, data: wordsWithComponents });
@@ -25,15 +33,25 @@ export class WordController {
     }
   }
 
-  static async getWordById(req: Request, res: Response, next: NextFunction) {
+  static async getWordById(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { id } = req.params;
-      const word = await prisma.word.findUnique({ where: { id } });
+
+      const word = await prisma.word.findUnique({
+        where: { id },
+      });
 
       if (!word) {
         return res.status(404).json({
           success: false,
-          error: { code: 'NOT_FOUND', message: 'Word not found' },
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Word not found',
+          },
         });
       }
 
